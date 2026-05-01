@@ -591,27 +591,250 @@ section { padding: 7rem 2rem; max-width: 1200px; margin: 0 auto; }
   100% { transform: translateX(-50%); }
 }
 
-/* Awards section */
+/* ============================================================
+   AWARDS & HONORS
+   ============================================================ */
+
+/* ── Grid: 2 columns on desktop, 1 on mobile ── */
 .awards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem; margin-top: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2.2rem;
+  margin-top: 2.5rem;
 }
+@media (max-width: 760px) {
+  .awards-grid {
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+  }
+}
+
+/* ── Card shell ── */
 .award-card {
   background: var(--glass);
   border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  padding: 1.2rem 1.4rem;
-  display: flex; align-items: flex-start; gap: 0.9rem;
-  transition: border-color 0.3s, transform 0.3s;
-  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* no pseudo-element glow — clean card border only */
+  transition: border-color 0.35s ease,
+              transform   0.4s  cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow  0.4s  ease;
 }
 .award-card:hover {
-  border-color: rgba(0,245,255,0.25);
-  transform: translateY(-3px);
+  border-color: rgba(255,255,255,0.18);
+  transform:    translateY(-6px) scale(1.015);
+  box-shadow:   0 20px 50px rgba(0,0,0,0.55),
+                0  4px 20px rgba(0,0,0,0.3);
 }
-.award-icon { color: var(--cyan); font-size: 1.1rem; margin-top: 2px; flex-shrink: 0; }
-.award-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+/* Remove the old holographic ::before entirely */
+.award-card::before { display: none; }
+
+/* ── Card header ── */
+.award-card-header {
+  padding: 1.3rem 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  position: relative;
+  z-index: 2;
+}
+.award-icon {
+  color: var(--cyan);
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+.award-text {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  font-weight: 500;
+}
+
+/* ── Photo container ──
+   aspect-ratio 4/3 keeps images a comfortable, clearly-visible height
+   that scales proportionally with card width.                         */
+.award-images {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: rgba(255,255,255,0.03);
+  flex: 1;
+}
+
+/* ── Every photo wrapper ── */
+.award-image {
+  position: absolute;
+  inset: 0.9rem;           /* breathing room from card edge */
+  border-radius: 12px;
+  overflow: hidden;        /* clips the img AND the slide overlay */
+  background: rgba(0,0,0,0.25);
+  /* transparent border — no colour, no gradient */
+  border: 2px solid transparent;
+  transition: transform 0.45s ease, box-shadow 0.45s ease;
+}
+
+/* ── No holographic pseudo-elements on the photo ── */
+.award-image::before,
+.award-image::after { display: none; }
+
+/* ── The photo itself ── */
+.award-image img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 10px;
+  display: block;
+  /* keep images sharp; only a gentle brightness lift on hover */
+  transition: transform 0.5s ease, filter 0.5s ease;
+  filter: brightness(1) contrast(1.05) saturate(1.1);
+  will-change: transform;
+}
+.award-card:hover .award-image img {
+  transform: scale(1.04);
+  filter: brightness(1.07) contrast(1.08) saturate(1.18);
+}
+
+/* ── Primary photo (first child) — always visible, sits at back ── */
+.award-image:nth-child(1) {
+  z-index: 2;
+}
+
+/* ── Second photo — slides in from the right on hover ──
+   Also auto-previews via a looping animation so it's discoverable. ── */
+.award-image:nth-child(2) {
+  z-index: 3;
+  transform: translateX(105%);
+  opacity: 0;
+  animation: photo-slide-loop 9s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+.award-card:hover .award-image:nth-child(2) {
+  animation: none;
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1),
+              opacity   0.35s ease;
+}
+
+/* ── Slide-in caption overlay ──
+   Starts below the photo frame; slides up on card hover.
+   Semi-transparent dark layer — does NOT block the photo. ── */
+.award-photo-caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 10;
+  /* dark-to-transparent gradient so photo is still readable above it */
+  background: linear-gradient(
+    to top,
+    rgba(5, 5, 15, 0.82) 0%,
+    rgba(5, 5, 15, 0.35) 55%,
+    transparent 100%
+  );
+  padding: 2.2rem 1.1rem 1rem;
+  transform: translateY(100%);
+  transition: transform 0.42s cubic-bezier(0.34,1.56,0.64,1);
+  border-radius: 0 0 10px 10px;
+  pointer-events: none;
+}
+/* Show caption on the primary photo when the card is hovered */
+.award-card:hover .award-image:nth-child(1) .award-photo-caption,
+/* Show caption on the second photo whenever it's visible */
+.award-image:nth-child(2) .award-photo-caption {
+  transform: translateY(0);
+}
+
+.award-photo-caption span {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+/* Simple dot icon — no animation, no rainbow */
+.award-photo-caption span::before {
+  content: '▸';
+  font-size: 0.75rem;
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+
+/* ── Keyframes ── */
+@keyframes photo-slide-loop {
+  /* wait off-screen → slide in → hold → slide out → long pause */
+  0%   { transform: translateX(105%); opacity: 0; }
+  10%  { transform: translateX(105%); opacity: 0; }
+  24%  { transform: translateX(0%);   opacity: 1; }
+  52%  { transform: translateX(0%);   opacity: 1; }
+  64%  { transform: translateX(-105%); opacity: 0; }
+  100% { transform: translateX(-105%); opacity: 0; }
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================================
+   CONTACT
+   ============================================================ */
+.gallery-photo {
+  position: relative;
+  height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  transition: transform 0.3s, border-color 0.3s;
+}
+.gallery-photo:hover {
+  border-color: rgba(0,245,255,0.3);
+  transform: scale(1.02);
+}
+.gallery-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s;
+}
+.gallery-photo:hover img {
+  transform: scale(1.08);
+}
+.gallery-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,245,255,0.1), rgba(191,90,242,0.1));
+  opacity: 0;
+  transition: opacity 0.3s;
+  display: flex;
+  align-items: flex-end;
+  padding: 1.5rem;
+}
+.gallery-photo:hover .gallery-photo-overlay {
+  opacity: 1;
+}
+.photo-label {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--cyan);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+@media (max-width: 768px) {
+  .achievements-gallery {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ============================================================
    CONTACT
@@ -814,11 +1037,11 @@ footer {
       <div class="stat-label">Hackathon Awards</div>
     </div>
     <div class="reveal">
-      <div class="stat-num" data-target="3">0</div>
+      <div class="stat-num" data-target="5">0</div>
       <div class="stat-label">Projects Built</div>
     </div>
     <div class="reveal">
-      <div class="stat-num" data-target="8">0</div>
+      <div class="stat-num" data-target="8">0.0</div>
       <div class="stat-label">CGPA / 10</div>
     </div>
   </div>
@@ -828,9 +1051,29 @@ footer {
 <section id="skills">
   <p class="section-label reveal">Capabilities</p>
   <h2 class="section-title reveal">Technical <span style="background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Skills</span></h2>
-  <p class="section-sub reveal">A toolkit spanning front-end engineering, AI development, cloud basics, and design — continuously expanding.</p>
+  <p class="section-sub reveal">Comprehensive expertise spanning programming, frontend development, data analytics, design, and essential development tools.</p>
 
   <div class="skills-grid">
+    <!-- Programming -->
+    <div class="skill-category reveal-scale">
+      <div class="cat-header">
+        <div class="cat-icon cyan"><i class="fas fa-terminal"></i></div>
+        <span class="cat-title">Programming</span>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">Python</span><span class="skill-pct">90%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill cyan" data-width="90"></div></div>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">JavaScript</span><span class="skill-pct">85%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill cyan" data-width="85"></div></div>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">SQL</span><span class="skill-pct">80%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill cyan" data-width="80"></div></div>
+      </div>
+    </div>
+
     <!-- Frontend -->
     <div class="skill-category reveal-scale">
       <div class="cat-header">
@@ -838,73 +1081,92 @@ footer {
         <span class="cat-title">Frontend</span>
       </div>
       <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">HTML5 / CSS3</span><span class="skill-pct">90%</span></div>
+        <div class="skill-bar-header"><span class="skill-name">HTML</span><span class="skill-pct">95%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill cyan" data-width="95"></div></div>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">CSS</span><span class="skill-pct">90%</span></div>
         <div class="skill-bar-track"><div class="skill-bar-fill cyan" data-width="90"></div></div>
       </div>
       <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">JavaScript</span><span class="skill-pct">80%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill cyan" data-width="80"></div></div>
-      </div>
-      <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">ReactJS</span><span class="skill-pct">75%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill cyan" data-width="75"></div></div>
+        <div class="skill-bar-header"><span class="skill-name">Responsive Design</span><span class="skill-pct">88%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill cyan" data-width="88"></div></div>
       </div>
     </div>
-    <!-- Backend / Languages -->
+
+    <!-- Data Analytics -->
     <div class="skill-category reveal-scale">
       <div class="cat-header">
-        <div class="cat-icon purple"><i class="fas fa-terminal"></i></div>
-        <span class="cat-title">Languages & Backend</span>
+        <div class="cat-icon purple"><i class="fas fa-chart-line"></i></div>
+        <span class="cat-title">Data Analytics</span>
       </div>
       <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">Python</span><span class="skill-pct">85%</span></div>
+        <div class="skill-bar-header"><span class="skill-name">Tableau</span><span class="skill-pct">82%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill purple" data-width="82"></div></div>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">Power BI</span><span class="skill-pct">80%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill purple" data-width="80"></div></div>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">Excel</span><span class="skill-pct">85%</span></div>
         <div class="skill-bar-track"><div class="skill-bar-fill purple" data-width="85"></div></div>
       </div>
       <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">FastAPI</span><span class="skill-pct">70%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill purple" data-width="70"></div></div>
+        <div class="skill-bar-header"><span class="skill-name">Data Cleaning</span><span class="skill-pct">88%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill purple" data-width="88"></div></div>
       </div>
       <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">MySQL</span><span class="skill-pct">72%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill purple" data-width="72"></div></div>
+        <div class="skill-bar-header"><span class="skill-name">Visualization</span><span class="skill-pct">86%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill purple" data-width="86"></div></div>
       </div>
     </div>
-    <!-- Tools -->
-    <div class="skill-category reveal-scale">
-      <div class="cat-header">
-        <div class="cat-icon green"><i class="fas fa-wrench"></i></div>
-        <span class="cat-title">Tools & Cloud</span>
-      </div>
-      <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">Git / GitHub</span><span class="skill-pct">85%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill green" data-width="85"></div></div>
-      </div>
-      <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">Docker</span><span class="skill-pct">65%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill green" data-width="65"></div></div>
-      </div>
-      <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">AWS (Basics)</span><span class="skill-pct">55%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill green" data-width="55"></div></div>
-      </div>
-    </div>
+
     <!-- Design -->
     <div class="skill-category reveal-scale">
       <div class="cat-header">
         <div class="cat-icon pink"><i class="fas fa-pen-nib"></i></div>
-        <span class="cat-title">UI/UX Design</span>
+        <span class="cat-title">Design</span>
       </div>
       <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">Figma</span><span class="skill-pct">80%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill pink" data-width="80"></div></div>
+        <div class="skill-bar-header"><span class="skill-name">Figma</span><span class="skill-pct">85%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill pink" data-width="85"></div></div>
       </div>
       <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">Adobe XD</span><span class="skill-pct">72%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill pink" data-width="72"></div></div>
+        <div class="skill-bar-header"><span class="skill-name">UI/UX</span><span class="skill-pct">83%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill pink" data-width="83"></div></div>
       </div>
       <div class="skill-bar-item">
-        <div class="skill-bar-header"><span class="skill-name">Prototyping</span><span class="skill-pct">78%</span></div>
-        <div class="skill-bar-track"><div class="skill-bar-fill pink" data-width="78"></div></div>
+        <div class="skill-bar-header"><span class="skill-name">Wireframing</span><span class="skill-pct">82%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill pink" data-width="82"></div></div>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">Prototyping</span><span class="skill-pct">84%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill pink" data-width="84"></div></div>
+      </div>
+    </div>
+
+    <!-- Tools -->
+    <div class="skill-category reveal-scale">
+      <div class="cat-header">
+        <div class="cat-icon green"><i class="fas fa-wrench"></i></div>
+        <span class="cat-title">Tools</span>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">GitHub</span><span class="skill-pct">88%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill green" data-width="88"></div></div>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">Jupyter Notebook</span><span class="skill-pct">85%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill green" data-width="85"></div></div>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">Streamlit</span><span class="skill-pct">80%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill green" data-width="80"></div></div>
+      </div>
+      <div class="skill-bar-item">
+        <div class="skill-bar-header"><span class="skill-name">APIs</span><span class="skill-pct">82%</span></div>
+        <div class="skill-bar-track"><div class="skill-bar-fill green" data-width="82"></div></div>
       </div>
     </div>
   </div>
@@ -1115,7 +1377,7 @@ footer {
         <div class="exp-role">M.Sc. Computer Technology</div>
         <div class="exp-org">Sri Krishna Arts and Science College</div>
         <div class="exp-period">2025 – 2027 (pursuing)</div>
-        <div class="exp-desc">Currently pursuing master's with CGPA 8.3/10. Deepening expertise in AI, ML, and software engineering. Star of IT Department 2025 & Best Performance Award 2025.</div>
+        <div class="exp-desc">Currently pursuing master's with CGPA 8.7/10. Deepening expertise in AI, ML, and software engineering. Star of IT Department 2025 & Best Performance Award 2025.</div>
       </div>
       <div class="exp-card">
         <div class="exp-role">B.Sc. Information Technology</div>
@@ -1140,7 +1402,7 @@ footer {
         <div class="exp-role">M.Sc. Computer Technology</div>
         <div class="exp-org">Sri Krishna Arts and Science College</div>
         <div class="exp-period">2025 – 2027 (pursuing)</div>
-        <div class="exp-desc">Currently pursuing master's with CGPA 8.3/10. Deepening expertise in AI, ML, and software engineering. Star of IT Department 2025 & Best Performance Award 2025.</div>
+        <div class="exp-desc">Currently pursuing master's with CGPA 8.7/10. Deepening expertise in AI, ML, and software engineering. Star of IT Department 2025 & Best Performance Award 2025.</div>
       </div>
       <div class="exp-card">
         <div class="exp-role">B.Sc. Information Technology</div>
@@ -1156,14 +1418,61 @@ footer {
     <p class="section-label reveal">Recognition</p>
     <h3 class="section-title reveal" style="font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:0.5rem">Awards & <span style="background:linear-gradient(135deg,var(--pink),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Honors</span></h3>
     <div class="awards-grid">
-      <div class="award-card reveal"><div class="award-icon">🏆</div><div class="award-text">7th Place — Bitathon Hackathon at Goa Institute of Management</div></div>
-      <div class="award-card reveal"><div class="award-icon">🥉</div><div class="award-text">3rd Place — GDG on Campus Tech Sprint (Gamified Educational Platforms)</div></div>
-      <div class="award-card reveal"><div class="award-icon">🥉</div><div class="award-text">3rd Place — BIS Hackathon (Indian Sign Language Recognition System)</div></div>
-      <div class="award-card reveal"><div class="award-icon">🎯</div><div class="award-text">Finalist — HackVriksh Hackathon + Best AI Project for Social Goods</div></div>
-      <div class="award-card reveal"><div class="award-icon">⭐</div><div class="award-text">Star of IT Department — 2025</div></div>
-      <div class="award-card reveal"><div class="award-icon">🏅</div><div class="award-text">Best Performance Award for Departmental Activities — 2024 & 2025</div></div>
-      <div class="award-card reveal"><div class="award-icon">🎓</div><div class="award-text">Reliance Foundation Scholarship for Undergraduate — 2023</div></div>
-      <div class="award-card reveal"><div class="award-icon">📄</div><div class="award-text">Paper Presentations — KPR College & PSG CAS</div></div>
+      <div class="award-card reveal">
+        <div class="award-card-header"><div class="award-icon">🏆</div><div class="award-text">7th Place — Bitathon Hackathon at Goa Institute of Management</div></div>
+        <div class="award-images">
+          <div class="award-image"><img src="achive/gim.jpeg" alt="Bitathon"/><div class="award-photo-caption"><span>Bitathon @ GIM</span></div></div>
+          <div class="award-image"><img src="achive/gim_speech.jpeg" alt="Event"/><div class="award-photo-caption"><span>On Stage</span></div></div>
+        </div>
+      </div>
+      <div class="award-card reveal">
+        <div class="award-card-header"><div class="award-icon">🥉</div><div class="award-text">3rd Place — GDG on Campus Tech Sprint (Gamified Educational Platforms)</div></div>
+        <div class="award-images">
+          <div class="award-image"><img src="achive/gdg_part.jpeg" alt="Tech Sprint"/><div class="award-photo-caption"><span>GDG Tech Sprint Certificate</span></div></div>
+          <div class="award-image"><img src="achive/gdg_price.png" alt="Project"/><div class="award-photo-caption"><span>Price Grant</span></div></div>
+        </div>
+      </div>
+      <div class="award-card reveal">
+        <div class="award-card-header"><div class="award-icon">🥉</div><div class="award-text">3rd Place — BIS Hackathon (Indian Sign Language Recognition System)</div></div>
+        <div class="award-images">
+          <div class="award-image"><img src="achive/bis_cert.jpeg" alt="BIS"/><div class="award-photo-caption"><span>Certificate</span></div></div>
+          <div class="award-image"><img src="achive/bis.jpeg" alt="System"/><div class="award-photo-caption"><span>Price Grant</span></div></div>
+        </div>
+      </div>
+      <div class="award-card reveal">
+        <div class="award-card-header"><div class="award-icon">🎯</div><div class="award-text">Finalist — HackVriksh Hackathon + Best AI Project for Social Goods</div></div>
+        <div class="award-images">
+          <div class="award-image"><img src="achive/hack_vish_parti.jpeg" alt="HackVriksh"/><div class="award-photo-caption"><span>HackVriksh</span></div></div>
+          <div class="award-image"><img src="achive/hack_vish_best.jpeg" alt="AI"/><div class="award-photo-caption"><span>Best AI Award</span></div></div>
+        </div>
+      </div>
+      <div class="award-card reveal">
+        <div class="award-card-header"><div class="award-icon">⭐</div><div class="award-text">Best Departmental Performance — 2023 & 2024</div></div>
+        <div class="award-images">
+          <div class="award-image"><img src="achive/dep_2023-24.jpeg" alt="Star"/><div class="award-photo-caption"><span>Best Performance</span></div></div>
+          <!--<div class="award-image"><img src="achive/department_ceremony.jpeg" alt="Ceremony"/></div>-->
+        </div>
+      </div>
+      <div class="award-card reveal">
+        <div class="award-card-header"><div class="award-icon">⭐</div><div class="award-text">Star of IT Department and Best Departmental Performance — 2024 & 2025</div></div>
+        <div class="award-images">
+          <div class="award-image"><img src="achive/dep_2024-25.jpeg" alt="Star"/><div class="award-photo-caption"><span>Star of IT Dept</span></div></div>
+          <!--<div class="award-image"><img src="achive/department_ceremony.jpeg" alt="Ceremony"/></div>-->
+        </div>
+      </div>
+      <div class="award-card reveal">
+        <div class="award-card-header"><div class="award-icon">🎓</div><div class="award-text">Reliance Foundation Scholarship for Undergraduate — 2023</div></div>
+        <div class="award-images">
+          <div class="award-image"><img src="achive/relaince_scholar.webp" alt="Scholarship"/><div class="award-photo-caption"><span>Reliance Scholarship</span></div></div>
+        </div>
+      </div>
+      <div class="award-card reveal">
+        <div class="award-card-header"><div class="award-icon">📄</div><div class="award-text">Paper Presentations — KPR College & PSG CAS</div></div>
+        <div class="award-images">
+          <div class="award-image"><img src="achive/pp_kpr.jpeg" alt="KPR"/><div class="award-photo-caption"><span>KPR College</span></div></div>
+          <div class="award-image"><img src="achive/pp_psg.jpeg" alt="PSG"/><div class="award-photo-caption"><span>PSG CAS</span></div></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -1588,7 +1897,7 @@ document.querySelectorAll('.btn-primary').forEach(btn => {
 <span class="t-output green">  → Open to remote & relocation opportunities</span>`,
 
     education: `
-<span class="t-output purple">2025–2027</span><span class="t-output"> M.Sc. Computer Technology  </span><span class="t-output cyan">CGPA: 8.3/10</span>
+<span class="t-output purple">2025–2027</span><span class="t-output"> M.Sc. Computer Technology  </span><span class="t-output cyan">CGPA: 8.7/10</span>
 <span class="t-output">          Sri Krishna Arts and Science College</span>
 <span class="t-output purple">2022–2025</span><span class="t-output"> B.Sc. Information Technology </span><span class="t-output cyan">CGPA: 8.9/10</span>
 <span class="t-output">          PSGR Krishnammal College for Women</span>`,
